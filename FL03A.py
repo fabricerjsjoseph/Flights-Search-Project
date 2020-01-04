@@ -64,46 +64,6 @@ def FL03A():
             )
         ], style={'width': '55%', 'display': 'inline-block'}),
         html.Div([
-        dash_table.DataTable(
-            id='datatable-interactivity',
-            columns=[
-                {"name": i, "id": i} for i in sydney_df_today.columns
-            ],
-            style_cell_conditional=[
-            {
-                'if': {'column_id': c},
-                'textAlign': 'left'
-            } for c in ['Departure Date', 'Flight ID']
-            ],
-            style_data_conditional=[
-                {
-                    'if': {'row_index': 5},
-                    'backgroundColor': 'rgb(204, 204, 255)'
-                }
-            ],
-            style_header={
-                'backgroundColor': 'rgb(51, 51, 255)',
-                'fontWeight': 'bold',
-                'color':'white'
-            },
-            data=sydney_df_today.to_dict('records'),
-            editable=True,
-            filter_action="native",
-            sort_action="native",
-            sort_mode="multi",
-            column_selectable=False,
-            row_selectable=False,
-            row_deletable=False,
-            selected_columns=[],
-            selected_rows=[],
-            page_action="native",
-            page_current= 0,
-            page_size= 10,
-            hidden_columns=['Flight Path','Destination','Airline','Search Date'],
-        ),
-        html.Div(id='datatable-interactivity-container')
-    ],style={'width': '40%', 'display': 'inline-block','marginLeft': 25}),
-        html.Div([
             html.H2('Lowest Price Trend Graph'),
             dcc.Graph(id='min-price-trend-graph'),
             html.P('')

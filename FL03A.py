@@ -14,8 +14,6 @@ def FL03A():
     # seting global variables
     global sydney_df
 
-
-
     # importing data from FL02_Sydney_Flights_Dataframe
     sydney_df=generate_df()
 
@@ -117,46 +115,5 @@ def FL03A():
             trace_list.append(trace)
         return trace_list
 
-    # Flight Path Minimum Price Trend - Linechart
-
-    @app.callback(Output('min-price-trend-graph', 'figure'), [Input('flight-path-dropdown', 'value')])
-    def update_linegraph(selected_dropdown_value):
-
-        # Create a copy of source data to filter
-        sydney_df_trend=sydney_df.copy()
-
-        sydney_df_trend = sydney_df_trend[(sydney_df_trend['Flight Path'].isin(selected_dropdown_value))]
-
-        sydney_df_trend=pd.pivot_table(sydney_df_trend,index='Flight Path',columns='Search Date',values='Current Price AUD',aggfunc='min')
-
-        sydney_df_trend=sydney_df_trend.stack().reset_index()
-        sydney_df_trend.columns=['Flight Path','Search Date','Current Price AUD']
-
-         # Generate trace list and assign to data variable
-        data=generate_trace_list_linechart(sydney_df_trend, selected_dropdown_value)
-
-        #layout
-
-        layout = go.Layout(barmode = "group", title="Flight Path Minimum Price Trend",
-                       xaxis= dict(title= 'Search Date',ticklen= 5,zeroline= False),
-                       yaxis= dict(title= 'AUD',ticklen= 5,zeroline= False))
-
-        figure=go.Figure(data=data,layout=layout)
-
-        return figure
-
-
-    def generate_trace_list_linechart(sydney_df_trend, selected_dropdown_value):
-        # Make a timeline
-        trace_list = []
-        for value in selected_dropdown_value:
-            selected_value_df = sydney_df_trend[sydney_df_trend['Flight Path']==value]
-            trace = go.Scatter(
-                x=selected_value_df['Search Date'],
-                y=selected_value_df['Current Price AUD'],
-                name = value
-            )
-            trace_list.append(trace)
-        return trace_list
 
     return app

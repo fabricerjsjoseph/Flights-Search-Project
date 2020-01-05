@@ -57,30 +57,32 @@ def FL03A():
             dcc.Graph(
                 id='flights-price-comparison'
             )
-        ], style={'width': '40%', 'display': 'inline-block'}),
+        ], style={'width': '55%', 'display': 'inline-block'}),
         html.Div([
-            html.H2('All product info'),
+            html.H2('Flights Master'),
             dash_table.DataTable(
                 id='datatable-interactivity',
                 columns=[
-                    {"name": i, "id": i, "deletable": True, "selectable": True} for i in sydney_df_datatable.columns
+                    {"name": i, "id": i} for i in sydney_df_datatable.columns
                 ],
                 data=sydney_df_datatable.to_dict('records'),
+                style_header={'backgroundColor': 'rgb(51, 51, 255)','fontWeight': 'bold','color':'white'},
                 editable=True,
                 filter_action="native",
                 sort_action="native",
                 sort_mode="multi",
-                column_selectable="single",
-                row_selectable="multi",
-                row_deletable=True,
+                column_selectable=False,
+                row_selectable=False,
+                row_deletable=False,
                 selected_columns=[],
                 selected_rows=[],
                 page_action="native",
                 page_current= 0,
                 page_size= 10,
+                hidden_columns=['Flight Path','Destination','Airline','Search Date']
             ),
             html.Div(id='datatable-interactivity-container'),
-        ], style={'width': '55%', 'float': 'right', 'display': 'inline-block'}),
+        ], style={'width': '40%', 'float': 'right', 'display': 'inline-block'}),
         html.Div([
             html.H2('Lowest Price Trend Graph'),
             dcc.Graph(id='min-price-trend-graph'),
@@ -88,6 +90,10 @@ def FL03A():
         ], style={'width': '100%',  'display': 'inline-block'}),
         html.Div(id='hidden-email-alert', style={'display':'none'})
     ])
+
+
+    ### DATATABLE INTERACTIVITY
+    @app.callback(Output('datatable-interactivity', 'style_data_conditional'),[Input('datatable-interactivity', 'selected_columns')])
 
     ### BARCHART
 

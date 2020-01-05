@@ -11,9 +11,6 @@ def FL03A():
     from datetime import date
 
 
-    # seting global variables
-    global sydney_df
-
     # importing data from FL02_Sydney_Flights_Dataframe
     sydney_df=generate_df()
 
@@ -21,10 +18,10 @@ def FL03A():
     today = date.today()
 
     # Create dataframe with only today's search result
-    sydney_df_today=sydney_df.copy()
+    sydney_df_datatable=sydney_df.copy()
 
     # Only include latest search date
-    sydney_df_today=sydney_df_today[sydney_df_today['Search Date']==today.strftime("%Y-%m-%d")]
+    sydney_df_datatable=sydney_df_datatable[sydney_df_datatable['Search Date']==today.strftime("%Y-%m-%d")]
 
 
     # activate Dash Server
@@ -60,7 +57,12 @@ def FL03A():
             dcc.Graph(
                 id='flights-price-comparison'
             )
-        ], style={'width': '55%', 'display': 'inline-block'}),
+        ], style={'width': '40%', 'display': 'inline-block'}),
+        html.Div([
+            html.H2('All product info'),
+            html.Table(id='my-table'),
+            html.P(''),
+        ], style={'width': '55%', 'float': 'right', 'display': 'inline-block'}),
         html.Div([
             html.H2('Lowest Price Trend Graph'),
             dcc.Graph(id='min-price-trend-graph'),
@@ -69,28 +71,27 @@ def FL03A():
         html.Div(id='hidden-email-alert', style={'display':'none'})
     ])
 
-
     # Flight Price Comparison Graph by Departure Date - Barchart
 
     @app.callback(Output('flights-price-comparison', 'figure'), [Input('flight-path-dropdown', 'value')])
-    def update_bargraph(selected_dropdown_value):
+    def update_bar_graph(selected_dropdown_value):
 
-        sydney_df_today_graph=sydney_df.copy()
+        sydney_df_barchart=sydney_df.copy()
 
         # Only include latest search date
-        sydney_df_today_graph=sydney_df_today_graph[sydney_df_today_graph['Search Date']==today.strftime("%Y-%m-%d")]
+        sydney_df_barchart=sydney_df_barchart[sydney_df_barchart['Search Date']==today.strftime("%Y-%m-%d")]
 
         # Filter data frame based on flight path
-        sydney_df_today_graph = sydney_df_today_graph[(sydney_df_today_graph['Flight Path'].isin(selected_dropdown_value))]
+        sydney_df_barchart = sydney_df_barchart[(sydney_df_barchart['Flight Path'].isin(selected_dropdown_value))]
 
         # Converting Search Date to a datetime object to enable sorting
-        sydney_df_today_graph['Departure Date']=pd.to_datetime(sydney_df_today_graph['Departure Date'],format='%d-%m-%Y').dt.date
+        sydney_df_barchart['Departure Date']=pd.to_datetime(sydney_df_barchart['Departure Date'],format='%d-%m-%Y').dt.date
 
         # Sort search date in ascending order
-        sydney_df_today_graph.sort_values(by='Departure Date',inplace=True)
+        sydney_df_barchart.sort_values(by='Departure Date',inplace=True)
 
         # Generate trace list and assign to data variable
-        data=generate_trace_list(sydney_df_today_graph, selected_dropdown_value)
+        data=generate_trace_list(sydney_df_barchart, selected_dropdown_value)
 
         #layout
 
@@ -102,11 +103,11 @@ def FL03A():
 
         return figure
 
-    def generate_trace_list(sydney_df_today_graph, selected_dropdown_value):
+    def generate_trace_list_barchart(sydney_df_barchart, selected_dropdown_value):
         # Make a timeline
         trace_list = []
         for value in selected_dropdown_value:
-            selected_value_df = sydney_df_today_graph[sydney_df_today_graph['Flight Path']==value]
+            selected_value_df = sydney_df_barchart[sydney_df_barchart['Flight Path']==value]
             trace = go.Bar(
                 x=selected_value_df['Departure Date'],
                 y=selected_value_df['Current Price AUD'],

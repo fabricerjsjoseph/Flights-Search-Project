@@ -67,6 +67,9 @@ def FL03A():
                 ],
                 data=sydney_df_datatable.to_dict('records'),
                 style_header={'backgroundColor': 'rgb(51, 51, 255)','fontWeight': 'bold','color':'white'},
+                style_data_conditional=[{'if': {'row_index': 'odd'},'backgroundColor': 'rgb(204, 204, 255)'}],
+                style_cell_conditional=[{'if': {'column_id': c},'textAlign': 'left'} for c in ['Departure Date', 'Flight ID']],
+                style_as_list_view=True,
                 editable=True,
                 filter_action="native",
                 sort_action="native",
@@ -92,7 +95,7 @@ def FL03A():
     ])
 
     ### DATATABLE INTERACTIVITY
-    @app.callback(Output('datatable-interactivity', 'style_data_conditional'),[Input('datatable-interactivity', 'selected_columns')])
+    #@app.callback(Output('datatable-interactivity', 'style_data_conditional'),[Input('datatable-interactivity', 'selected_columns')])
 
     ### BARCHART
 

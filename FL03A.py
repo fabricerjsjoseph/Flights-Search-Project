@@ -60,8 +60,26 @@ def FL03A():
         ], style={'width': '40%', 'display': 'inline-block'}),
         html.Div([
             html.H2('All product info'),
-            html.Table(id='my-table'),
-            html.P(''),
+            dash_table.DataTable(
+                id='datatable-interactivity',
+                columns=[
+                    {"name": i, "id": i, "deletable": True, "selectable": True} for i in sydney_df_datatable.columns
+                ],
+                data=sydney_df_datatable.to_dict('records'),
+                editable=True,
+                filter_action="native",
+                sort_action="native",
+                sort_mode="multi",
+                column_selectable="single",
+                row_selectable="multi",
+                row_deletable=True,
+                selected_columns=[],
+                selected_rows=[],
+                page_action="native",
+                page_current= 0,
+                page_size= 10,
+            ),
+            html.Div(id='datatable-interactivity-container'),
         ], style={'width': '55%', 'float': 'right', 'display': 'inline-block'}),
         html.Div([
             html.H2('Lowest Price Trend Graph'),

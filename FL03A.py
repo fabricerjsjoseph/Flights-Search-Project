@@ -91,7 +91,6 @@ def FL03A():
         html.Div(id='hidden-email-alert', style={'display':'none'})
     ])
 
-
     ### DATATABLE INTERACTIVITY
     @app.callback(Output('datatable-interactivity', 'style_data_conditional'),[Input('datatable-interactivity', 'selected_columns')])
 

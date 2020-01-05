@@ -71,7 +71,7 @@ def FL03A():
         html.Div(id='hidden-email-alert', style={'display':'none'})
     ])
 
-    # Flight Price Comparison Graph by Departure Date - Barchart
+    ### BARCHART
 
     @app.callback(Output('flights-price-comparison', 'figure'), [Input('flight-path-dropdown', 'value')])
     def update_bar_graph(selected_dropdown_value):
@@ -91,7 +91,7 @@ def FL03A():
         sydney_df_barchart.sort_values(by='Departure Date',inplace=True)
 
         # Generate trace list and assign to data variable
-        data=generate_trace_list(sydney_df_barchart, selected_dropdown_value)
+        data=generate_trace_list_barchart(sydney_df_barchart, selected_dropdown_value)
 
         #layout
 
@@ -113,6 +113,44 @@ def FL03A():
                 y=selected_value_df['Current Price AUD'],
                 name = value
             )
+            trace_list.append(trace)
+        return trace_list
+
+    ### LINECHART
+    @app.callback(Output('min-price-trend-graph', 'figure'), [Input('flight-path-dropdown', 'value')])
+    def update_linegraph(selected_dropdown_value):
+
+        # Create a copy of source data to filter
+        sydney_df_linechart=sydney_df.copy()
+
+        sydney_df_linechart = sydney_df_linechart[(sydney_df_linechart['Flight Path'].isin(selected_dropdown_value))]
+
+        sydney_df_linechart=pd.pivot_table(sydney_df_linechart,index='Flight Path',columns='Search Date',\
+                                              values='Current Price AUD',aggfunc='min')
+
+        sydney_df_linechart=sydney_df_linechart.stack().reset_index()
+        sydney_df_linechart.columns=['Flight Path','Search Date','Current Price AUD']
+
+         # Generate trace list and assign to data variable
+        data=generate_trace_list_linechart(sydney_df_linechart, selected_dropdown_value)
+
+        #layout
+
+        layout = go.Layout(barmode = "group", title="Flight Path Minimum Price Trend",
+                       xaxis= dict(title= 'Search Date',ticklen= 5,zeroline= False),
+                       yaxis= dict(title= 'AUD',ticklen= 5,zeroline= False))
+
+        figure=go.Figure(data=data,layout=layout)
+
+        return figure
+
+
+    def generate_trace_list_linechart(sydney_df_linechart, selected_dropdown_value):
+        # Make a timeline
+        trace_list = []
+        for value in selected_dropdown_value:
+            selected_value_df = sydney_df_linechart[sydney_df_linechart['Flight Path']==value]
+            trace = go.Scatter(x=selected_value_df['Search Date'],y=selected_value_df['Current Price AUD'],name = value)
             trace_list.append(trace)
         return trace_list
 

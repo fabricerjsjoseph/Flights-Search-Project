@@ -14,6 +14,13 @@ def FL03A():
     # importing data from FL02_Sydney_Flights_Dataframe
     sydney_df=generate_df()
 
+
+    # Converting Search Date to a datetime object to enable sorting
+    sydney_df['Departure Date']=pd.to_datetime(sydney_df['Departure Date'],format='%d-%m-%Y').dt.date
+
+    # Sort search date in ascending order
+    sydney_df.sort_values(by='Departure Date',inplace=True)
+
     # Create today object to extract today's date
     today = date.today()
 
@@ -68,6 +75,7 @@ def FL03A():
                 data=sydney_df_datatable.to_dict('records'),
                 style_header={'backgroundColor': 'rgb(51, 51, 255)','fontWeight': 'bold','color':'white'},
                 style_data_conditional=[{'if': {'row_index': 'odd'},'backgroundColor': 'rgb(204, 204, 255)'}],
+                style_cell={'textAlign': 'center'},
                 style_cell_conditional=[{'if': {'column_id': c},'textAlign': 'left'} for c in ['Departure Date', 'Flight ID']],
                 style_as_list_view=True,
                 editable=True,
@@ -110,21 +118,16 @@ def FL03A():
         # Filter data frame based on flight path
         sydney_df_barchart = sydney_df_barchart[(sydney_df_barchart['Flight Path'].isin(selected_dropdown_value))]
 
-        # Converting Search Date to a datetime object to enable sorting
-        sydney_df_barchart['Departure Date']=pd.to_datetime(sydney_df_barchart['Departure Date'],format='%d-%m-%Y').dt.date
-
-        # Sort search date in ascending order
-        sydney_df_barchart.sort_values(by='Departure Date',inplace=True)
-
         # Generate trace list and assign to data variable
         data=generate_trace_list_barchart(sydney_df_barchart, selected_dropdown_value)
 
-        #layout
+        # set up bar chart layout
 
         layout = go.Layout(barmode = "group", title="Flight Price Comparison",
                        xaxis= dict(title= 'Departure Date',ticklen= 5,zeroline= False),
                        yaxis= dict(title= 'AUD',ticklen= 5,zeroline= False))
-
+                       
+        # Generate plotly figure object
         figure=go.Figure(data=data,layout=layout)
 
         return figure

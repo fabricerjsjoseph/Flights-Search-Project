@@ -53,8 +53,8 @@ def FL03A():
     # Creating the web app layout
     app.layout = html.Div([
         html.Div([
-            html.H1('Flights Price Monitoring Dashboard'),
-            html.H2('Choose Flight Path'),
+            html.H1('MRU-SYD Flights Dashboard'),
+            html.H2('Select Flight Path'),
             dcc.Dropdown(
                 id='flight-path-dropdown',
                 options=dict_flight_paths,
@@ -93,7 +93,7 @@ def FL03A():
                 hidden_columns=['Flight Path','Destination','Airline','Search Date']
             ),
             html.Div(id='datatable-interactivity-container'),
-        ], style={'width': '40%', 'float': 'right', 'display': 'inline-block'}),
+        ], style={'width': '35%', 'float': 'right', 'display': 'inline-block','margin-right': '100px','margin-top': '100px'}),
         html.Div([
             html.H2('Lowest Price Trend Graph'),
             dcc.Graph(id='min-price-trend-graph'),
@@ -123,12 +123,15 @@ def FL03A():
 
         # set up bar chart layout
 
-        layout = go.Layout(barmode = "group", title="Flight Price Comparison",
+        layout = go.Layout(barmode = "group", title="Current Price Comparison by Departure Date",
                        xaxis= dict(title= 'Departure Date',ticklen= 5,zeroline= False),
                        yaxis= dict(title= 'AUD',ticklen= 5,zeroline= False))
-                       
+
         # Generate plotly figure object
         figure=go.Figure(data=data,layout=layout)
+
+        # Center title
+        figure.update_layout(title_text='<b>Current Price Comparison by Departure Date</b>', title_x=0.5)
 
         return figure
 
@@ -165,11 +168,14 @@ def FL03A():
 
         #layout
 
-        layout = go.Layout(barmode = "group", title="Flight Path Minimum Price Trend",
+        layout = go.Layout(barmode = "group", title="Minimum Price Trend by Search Date",
                        xaxis= dict(title= 'Search Date',ticklen= 5,zeroline= False),
                        yaxis= dict(title= 'AUD',ticklen= 5,zeroline= False))
 
         figure=go.Figure(data=data,layout=layout)
+
+        # Center title
+        figure.update_layout(title_text='<b>Minimum Price Trend by Search Date</b>', title_x=0.5)
 
         return figure
 

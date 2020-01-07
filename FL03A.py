@@ -27,6 +27,9 @@ def FL03A():
     # Create dataframe with only today's search result
     sydney_df_datatable=sydney_df.copy()
 
+    #Changing date format
+    sydney_df_datatable['Departure Date']=pd.to_datetime(sydney_df_datatable['Departure Date']).dt.strftime('%d-%m-%Y')
+
     # Only include latest search date
     sydney_df_datatable=sydney_df_datatable[sydney_df_datatable['Search Date']==today.strftime("%Y-%m-%d")]
 
@@ -40,8 +43,9 @@ def FL03A():
 
     # Create list of flight paths for drop down menu
     def flight_paths_dict_list():
+        global unique_list
         dictlist = []
-        unique_list = sydney_df['Flight Path'].unique()
+        unique_list = sydney_df['Flight Path'].sort_values().unique()
         for flight_path in unique_list:
             dictlist.append({'value': flight_path, 'label': flight_path})
         return dictlist
@@ -94,11 +98,11 @@ def FL03A():
             ),
             html.Div(id='datatable-interactivity-container'),
         ], style={'width': '35%', 'float': 'right', 'display': 'inline-block','margin-right': '100px','margin-top': '100px'}),
-        html.Div([
-            html.H2('Lowest Price Trend Graph'),
-            dcc.Graph(id='min-price-trend-graph'),
-            html.P('')
-        ], style={'width': '100%',  'display': 'inline-block'}),
+        html.Div([html.H2('Select Flight Path'),
+        dcc.Dropdown(id='flight-path-dropdown-2',options=dict_flight_paths,multi=True,value = unique_list)],
+        style={'width': '80%','display': 'inline-block','margin-top':'50px','margin-left':'50px'}),
+        html.Div([dcc.Graph(id='min-price-trend-graph'),html.P('')
+        ], style={'width': '100%','display': 'inline-block'}),
         html.Div(id='hidden-email-alert', style={'display':'none'})
     ])
 
@@ -149,7 +153,7 @@ def FL03A():
         return trace_list
 
     ### LINECHART
-    @app.callback(Output('min-price-trend-graph', 'figure'), [Input('flight-path-dropdown', 'value')])
+    @app.callback(Output('min-price-trend-graph', 'figure'), [Input('flight-path-dropdown-2', 'value')])
     def update_linegraph(selected_dropdown_value):
 
         # Create a copy of source data to filter

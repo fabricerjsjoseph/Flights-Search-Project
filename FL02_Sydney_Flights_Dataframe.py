@@ -50,8 +50,17 @@ flight_dict={'Emirates-4:45 pm-10:30 pm':'Emirates MRU-DBX-SYD',
 'Air Mauritius-8:40 pm-9:20 pm':'Air Mauritius MRU-SIN-SYD'}
 
 
-# Flight Path
+# Map Flight Path based on Flight ID
 master_df['Flight Path']=master_df['Flight ID'].map(flight_dict).fillna('Other')
+
+# Converting Search Date to a datetime object to enable sorting
+master_df['Search Date']=pd.to_datetime(master_df['Search Date'],format='%d-%m-%Y').dt.date
+
+# Sort search date in ascending order
+master_df.sort_values(by='Search Date',inplace=True)
+
+# Convert back to string
+master_df['Search Date']=master_df['Search Date'].astype(str)
 
 
 # Create copy of master_df
@@ -69,17 +78,16 @@ lean_master_df= lean_master_df[lean_master_df['Current Price AUD'] <= 3000]
 lean_master_df= lean_master_df[lean_master_df['Duration-Net Hours'] < 25]
 
 
-# Converting Search Date to a datetime object to enable sorting
-lean_master_df['Search Date']=pd.to_datetime(lean_master_df['Search Date'],format='%d-%m-%Y').dt.date
-
-# Sort search date in ascending order
-lean_master_df.sort_values(by='Search Date',inplace=True)
-
-# Convert back to string
-lean_master_df['Search Date']=lean_master_df['Search Date'].astype(str)
-
 def generate_df():
     return lean_master_df
+
+def generate_master_df_pivot():
+
+	master_df_pivot=pd.pivot_table(master_df,index='Flight Path',columns='Search Date',values='Current Price AUD',aggfunc='count')
+	master_df_pivot=master_df_pivot.stack().reset_index()
+	master_df_pivot.columns=['Flight Path','Search Date','No of Flights']
+	return master_df_pivot
+
 
 
 # In[ ]:

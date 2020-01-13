@@ -1,18 +1,20 @@
 
 def FL03A():
-    from FL02_Sydney_Flights_Dataframe import generate_df
+    from FL02_Sydney_Flights_Dataframe import generate_df,generate_master_df_pivot
     import dash
     import dash_table
     from dash.dependencies import Input, Output
     import dash_core_components as dcc
     import dash_html_components as html
     import plotly.graph_objs as go
+    from plotly.subplots import make_subplots
     import pandas as pd
     from datetime import date
 
 
     # importing data from FL02_Sydney_Flights_Dataframe
     sydney_df=generate_df()
+    flights_count_df=generate_master_df_pivot()
 
 
     # Converting Search Date to a datetime object to enable sorting
@@ -52,7 +54,38 @@ def FL03A():
 
     dict_flight_paths=flight_paths_dict_list()
 
+    ### LINECHART FOR NO OF FLIGHTS
+    def generate_linegraph_2():
+        # Generate trace list and assign to data variable
+        data=generate_trace_list_linechart_2(flights_count_df)
 
+       #layout
+
+        #layout = go.Layout(barmode = "group", title="Flights Count Trend",
+                      #xaxis= dict(title= 'Search Date',ticklen= 5,zeroline= False),
+                      #yaxis= dict(title= 'No of Flights',ticklen= 5,zeroline= False))
+
+        #figure=go.Figure(data=data,layout=layout)
+
+        figure=make_subplots(rows=5,cols=1)
+
+        for i in range(5):
+            figure.add_trace(data[i],row=i+1,col=1)
+
+       # Center title
+        figure.update_layout(title_text='<b>Flights Count Trend</b>', title_x=0.5)
+
+        return figure
+
+    def generate_trace_list_linechart_2(flights_count_df):
+
+        # Make a timeline
+        trace_list = []
+        for value in unique_list:
+            selected_value_df = flights_count_df[flights_count_df['Flight Path']==value]
+            trace = go.Scatter(x=selected_value_df['Search Date'],y=selected_value_df['No of Flights'],name = value)
+            trace_list.append(trace)
+        return trace_list
 
     # Creating the web app layout
     app.layout = html.Div([
@@ -103,7 +136,9 @@ def FL03A():
         style={'width': '80%','display': 'inline-block','margin-top':'50px','margin-left':'50px'}),
         html.Div([dcc.Graph(id='min-price-trend-graph'),html.P('')
         ], style={'width': '100%','display': 'inline-block'}),
-        html.Div(id='hidden-email-alert', style={'display':'none'})
+        html.Div([dcc.Graph(id='no-of-flights',figure=generate_linegraph_2()),html.P('')
+        ], style={'width': '100%','display': 'inline-block'}),
+        html.Div(id='none',children=[], style={'display':'none'})
     ])
 
     ### DATATABLE INTERACTIVITY
@@ -192,6 +227,8 @@ def FL03A():
             trace = go.Scatter(x=selected_value_df['Search Date'],y=selected_value_df['Current Price AUD'],name = value)
             trace_list.append(trace)
         return trace_list
+
+
 
 
     return app

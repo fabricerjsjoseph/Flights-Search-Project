@@ -6,6 +6,7 @@ def FL03A():
     from dash.dependencies import Input, Output
     import dash_core_components as dcc
     import dash_html_components as html
+    from dash.dash import no_update
     import plotly.graph_objs as go
     from plotly.subplots import make_subplots
     import pandas as pd
@@ -13,27 +14,27 @@ def FL03A():
 
 
     # importing data from FL02_Sydney_Flights_Dataframe
-    sydney_df=generate_df()
+    master_df=generate_df()
     flights_count_df=generate_master_df_pivot()
 
 
     # Converting Search Date to a datetime object to enable sorting
-    sydney_df['Departure Date']=pd.to_datetime(sydney_df['Departure Date'],format='%d-%m-%Y').dt.date
+    master_df['Departure Date']=pd.to_datetime(master_df['Departure Date'],format='%d-%m-%Y').dt.date
 
     # Sort search date in ascending order
-    sydney_df.sort_values(by='Departure Date',inplace=True)
+    master_df.sort_values(by='Departure Date',inplace=True)
 
     # Create today object to extract today's date
     today = date.today()
 
     # Create dataframe with only today's search result
-    sydney_df_datatable=sydney_df.copy()
+    master_df_datatable=master_df.copy()
 
     #Changing date format
-    sydney_df_datatable['Departure Date']=pd.to_datetime(sydney_df_datatable['Departure Date']).dt.strftime('%d-%m-%Y')
+    master_df_datatable['Departure Date']=pd.to_datetime(master_df_datatable['Departure Date']).dt.strftime('%d-%m-%Y')
 
     # Only include latest search date
-    sydney_df_datatable=sydney_df_datatable[sydney_df_datatable['Search Date']==today.strftime("%Y-%m-%d")]
+    master_df_datatable=master_df_datatable[master_df_datatable['Search Date']==today.strftime("%Y-%m-%d")]
 
 
     # activate Dash Server
@@ -47,25 +48,27 @@ def FL03A():
     def flight_paths_dict_list():
         global unique_list
         dictlist = []
-        unique_list = sydney_df['Flight Path'].sort_values().unique()
+        unique_list = master_df['Flight Path'].sort_values().unique()
+        destination_list=master_df['Destination'].sort_values().unique()
         for flight_path in unique_list:
             dictlist.append({'value': flight_path, 'label': flight_path})
         return dictlist
 
     dict_flight_paths=flight_paths_dict_list()
 
+    destination_list=master_df['Destination'].sort_values().unique()
+    flight_path_unique=[]
+
+    for destination in destination_list:
+        destination_flight_path_list = master_df[master_df.Destination == destination]['Flight Path'].sort_values().unique()
+        flight_path_unique.append(destination_flight_path_list)
+
+    all_options_dict={destination_list[0]:flight_path_unique[0], destination_list[1]:flight_path_unique[1]}
+
     ### LINECHART FOR NO OF FLIGHTS
     def generate_linegraph_2():
         # Generate trace list and assign to data variable
         data=generate_trace_list_linechart_2(flights_count_df)
-
-       #layout
-
-        #layout = go.Layout(barmode = "group", title="Flights Count Trend",
-                      #xaxis= dict(title= 'Search Date',ticklen= 5,zeroline= False),
-                      #yaxis= dict(title= 'No of Flights',ticklen= 5,zeroline= False))
-
-        #figure=go.Figure(data=data,layout=layout)
 
         figure=make_subplots(rows=5,cols=1)
 
@@ -90,13 +93,18 @@ def FL03A():
     # Creating the web app layout
     app.layout = html.Div([
         html.Div([
-            html.H1('MRU-SYD Flights Dashboard'),
+            html.H1('Mauritius-Australia Flights Dashboard'),
+            html.H2('Select Destination'),
+            dcc.Dropdown(
+                id='destination-dropdown',
+                options=[{'label': k, 'value': k} for k in all_options_dict.keys()],
+                multi=False,
+                value='Sydney, Australia'
+            ),
             html.H2('Select Flight Path'),
             dcc.Dropdown(
                 id='flight-path-dropdown',
-                options=dict_flight_paths,
-                multi=True,
-                value = ["Air Mauritius MRU-PER-SYD option 1"]
+                multi=True
             ),
             dcc.Graph(
                 id='flights-price-comparison'
@@ -107,9 +115,9 @@ def FL03A():
             dash_table.DataTable(
                 id='datatable-interactivity',
                 columns=[
-                    {"name": i, "id": i} for i in sydney_df_datatable.columns
+                    {"name": i, "id": i} for i in master_df_datatable.columns
                 ],
-                data=sydney_df_datatable.to_dict('records'),
+                data=master_df_datatable.to_dict('records'),
                 style_header={'backgroundColor': 'rgb(51, 51, 255)','fontWeight': 'bold','color':'white'},
                 style_data_conditional=[{'if': {'row_index': 'odd'},'backgroundColor': 'rgb(204, 204, 255)'}],
                 style_cell={'textAlign': 'center'},
@@ -141,24 +149,33 @@ def FL03A():
         html.Div(id='none',children=[], style={'display':'none'})
     ])
 
-    ### DATATABLE INTERACTIVITY
-    #@app.callback(Output('datatable-interactivity', 'style_data_conditional'),[Input('datatable-interactivity', 'selected_columns')])
+    ### CALLBACK FOR FLIGHT PATH DROPDOWN MENUS
+    # Callback updates available options based on  selected destination
+    @app.callback(
+        [Output('flight-path-dropdown', 'options'),Output('flight-path-dropdown', 'value')],
+        [Input('destination-dropdown', 'value')])
+    def set_flight_path_options(selected_destination):
+        return [{'label': i, 'value': i} for i in all_options_dict[selected_destination]],[all_options_dict[selected_destination][0]]
+
 
     ### BARCHART
 
     @app.callback(Output('flights-price-comparison', 'figure'), [Input('flight-path-dropdown', 'value')])
     def update_bar_graph(selected_dropdown_value):
 
-        sydney_df_barchart=sydney_df.copy()
+        if not selected_dropdown_value:
+            return no_update
+
+        master_df_barchart=master_df.copy()
 
         # Only include latest search date
-        sydney_df_barchart=sydney_df_barchart[sydney_df_barchart['Search Date']==today.strftime("%Y-%m-%d")]
+        master_df_barchart=master_df_barchart[master_df_barchart['Search Date']==today.strftime("%Y-%m-%d")]
 
         # Filter data frame based on flight path
-        sydney_df_barchart = sydney_df_barchart[(sydney_df_barchart['Flight Path'].isin(selected_dropdown_value))]
+        master_df_barchart = master_df_barchart[(master_df_barchart['Flight Path'].isin(selected_dropdown_value))]
 
         # Generate trace list and assign to data variable
-        data=generate_trace_list_barchart(sydney_df_barchart, selected_dropdown_value)
+        data=generate_trace_list_barchart(master_df_barchart, selected_dropdown_value)
 
         # set up bar chart layout
 
@@ -174,11 +191,11 @@ def FL03A():
 
         return figure
 
-    def generate_trace_list_barchart(sydney_df_barchart, selected_dropdown_value):
+    def generate_trace_list_barchart(master_df_barchart, selected_dropdown_value):
         # Make a timeline
         trace_list = []
         for value in selected_dropdown_value:
-            selected_value_df = sydney_df_barchart[sydney_df_barchart['Flight Path']==value]
+            selected_value_df = master_df_barchart[master_df_barchart['Flight Path']==value]
             trace = go.Bar(
                 x=selected_value_df['Departure Date'],
                 y=selected_value_df['Current Price AUD'],
@@ -192,18 +209,18 @@ def FL03A():
     def update_linegraph(selected_dropdown_value):
 
         # Create a copy of source data to filter
-        sydney_df_linechart=sydney_df.copy()
+        master_df_linechart=master_df.copy()
 
-        sydney_df_linechart = sydney_df_linechart[(sydney_df_linechart['Flight Path'].isin(selected_dropdown_value))]
+        master_df_linechart = master_df_linechart[(master_df_linechart['Flight Path'].isin(selected_dropdown_value))]
 
-        sydney_df_linechart=pd.pivot_table(sydney_df_linechart,index='Flight Path',columns='Search Date',\
+        master_df_linechart=pd.pivot_table(master_df_linechart,index='Flight Path',columns='Search Date',\
                                               values='Current Price AUD',aggfunc='min')
 
-        sydney_df_linechart=sydney_df_linechart.stack().reset_index()
-        sydney_df_linechart.columns=['Flight Path','Search Date','Current Price AUD']
+        master_df_linechart=master_df_linechart.stack().reset_index()
+        master_df_linechart.columns=['Flight Path','Search Date','Current Price AUD']
 
          # Generate trace list and assign to data variable
-        data=generate_trace_list_linechart(sydney_df_linechart, selected_dropdown_value)
+        data=generate_trace_list_linechart(master_df_linechart, selected_dropdown_value)
 
         #layout
 
@@ -219,11 +236,11 @@ def FL03A():
         return figure
 
 
-    def generate_trace_list_linechart(sydney_df_linechart, selected_dropdown_value):
+    def generate_trace_list_linechart(master_df_linechart, selected_dropdown_value):
         # Make a timeline
         trace_list = []
         for value in selected_dropdown_value:
-            selected_value_df = sydney_df_linechart[sydney_df_linechart['Flight Path']==value]
+            selected_value_df = master_df_linechart[master_df_linechart['Flight Path']==value]
             trace = go.Scatter(x=selected_value_df['Search Date'],y=selected_value_df['Current Price AUD'],name = value)
             trace_list.append(trace)
         return trace_list

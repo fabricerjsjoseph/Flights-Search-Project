@@ -45,16 +45,6 @@ def FL03A():
 
 
     # Create list of flight paths for drop down menu
-    def flight_paths_dict_list():
-        global unique_list
-        dictlist = []
-        unique_list = master_df['Flight Path'].sort_values().unique()
-        destination_list=master_df['Destination'].sort_values().unique()
-        for flight_path in unique_list:
-            dictlist.append({'value': flight_path, 'label': flight_path})
-        return dictlist
-
-    dict_flight_paths=flight_paths_dict_list()
 
     destination_list=master_df['Destination'].sort_values().unique()
     flight_path_unique=[]
@@ -65,30 +55,7 @@ def FL03A():
 
     all_options_dict={destination_list[0]:flight_path_unique[0], destination_list[1]:flight_path_unique[1]}
 
-    ### LINECHART FOR NO OF FLIGHTS
-    def generate_linegraph_2():
-        # Generate trace list and assign to data variable
-        data=generate_trace_list_linechart_2(flights_count_df)
 
-        figure=make_subplots(rows=5,cols=1)
-
-        for i in range(5):
-            figure.add_trace(data[i],row=i+1,col=1)
-
-       # Center title
-        figure.update_layout(title_text='<b>Flights Count Trend</b>', title_x=0.5)
-
-        return figure
-
-    def generate_trace_list_linechart_2(flights_count_df):
-
-        # Make a timeline
-        trace_list = []
-        for value in unique_list:
-            selected_value_df = flights_count_df[flights_count_df['Flight Path']==value]
-            trace = go.Scatter(x=selected_value_df['Search Date'],y=selected_value_df['No of Flights'],name = value)
-            trace_list.append(trace)
-        return trace_list
 
     # Creating the web app layout
     app.layout = html.Div([
@@ -140,14 +107,23 @@ def FL03A():
             html.Div(id='datatable-interactivity-container'),
         ], style={'width': '35%', 'float': 'right', 'display': 'inline-block','margin-right': '100px','margin-top': '100px'}),
         html.Div([html.H2('Select Flight Path'),
-        dcc.Dropdown(id='flight-path-dropdown-2',options=dict_flight_paths,multi=True,value = unique_list)],
+        dcc.Dropdown(id='flight-path-dropdown-2',multi=True)],
         style={'width': '80%','display': 'inline-block','margin-top':'50px','margin-left':'50px'}),
         html.Div([dcc.Graph(id='min-price-trend-graph'),html.P('')
         ], style={'width': '100%','display': 'inline-block'}),
-        html.Div([dcc.Graph(id='no-of-flights',figure=generate_linegraph_2()),html.P('')
-        ], style={'width': '100%','display': 'inline-block'}),
+        html.Div([dcc.Graph(id='no-of-flights'),html.P('')
+        ], style={'width': '100%','height':'100%','display': 'inline-block'}),
         html.Div(id='none',children=[], style={'display':'none'})
     ])
+
+
+    ###  CALLBACK TO FILTER DATATABLE
+    @app.callback(Output('datatable-interactivity','data'), [Input('destination-dropdown', 'value')])
+    def filter_table(selected_destination):
+        filtered_datatable_df=master_df_datatable[master_df_datatable.Destination == selected_destination]
+        return filtered_datatable_df.to_dict('records')
+
+
 
     ### CALLBACK FOR FLIGHT PATH DROPDOWN MENUS
     # Callback updates available options based on  selected destination
@@ -156,6 +132,12 @@ def FL03A():
         [Input('destination-dropdown', 'value')])
     def set_flight_path_options(selected_destination):
         return [{'label': i, 'value': i} for i in all_options_dict[selected_destination]],[all_options_dict[selected_destination][0]]
+
+    @app.callback(
+        [Output('flight-path-dropdown-2', 'options'),Output('flight-path-dropdown-2', 'value')],
+        [Input('destination-dropdown', 'value')])
+    def set_flight_path_options(selected_destination):
+        return [{'label': i, 'value': i} for i in all_options_dict[selected_destination]],all_options_dict[selected_destination]
 
 
     ### BARCHART
@@ -204,7 +186,7 @@ def FL03A():
             trace_list.append(trace)
         return trace_list
 
-    ### LINECHART
+    ### LINECHART - PRICE TREND
     @app.callback(Output('min-price-trend-graph', 'figure'), [Input('flight-path-dropdown-2', 'value')])
     def update_linegraph(selected_dropdown_value):
 
@@ -245,7 +227,34 @@ def FL03A():
             trace_list.append(trace)
         return trace_list
 
+    ### LINECHART FOR NO OF FLIGHTS
+    @app.callback(Output('no-of-flights', 'figure'), [Input('destination-dropdown', 'value')])
+    def update_linegraph_2(selected_destination):
+        # Generate trace list and assign to data variable
+        data=generate_trace_list_linechart_2(flights_count_df[flights_count_df.Destination == selected_destination],selected_destination)
 
+        figure=make_subplots(rows=len(data),cols=1, subplot_titles=tuple(all_options_dict[selected_destination]))
+
+        for i in range(len(data)):
+            figure.add_trace(data[i],row=i+1,col=1)
+
+       # Center and bold title
+        figure.update_layout(title_text='<b>Flights Count Trend</b>', title_x=0.5,height=800)
+
+        # set number of ticks on Y xaxis
+        figure.update_yaxes(nticks=3)
+
+        return figure
+
+    def generate_trace_list_linechart_2(flights_count_df,selected_destination):
+
+        # Make a timeline
+        trace_list = []
+        for value in all_options_dict[selected_destination]:
+            selected_value_df = flights_count_df[flights_count_df['Flight Path']==value]
+            trace = go.Scatter(x=selected_value_df['Search Date'],y=selected_value_df['No of Flights'],name = value)
+            trace_list.append(trace)
+        return trace_list
 
 
     return app

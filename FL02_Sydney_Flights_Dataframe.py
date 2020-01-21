@@ -32,18 +32,20 @@ brisbane_df=csv_to_df(csv_list[1],brisbane_df)
 
 
 # Create dictionary for flight paths
-flight_dict_sydney={'Emirates-4:45 pm-10:30 pm':'Emirates MRU-DBX-SYD',
-'Air Mauritius-10:15 pm-5:50 pm':'Air Mauritius MRU-PER-SYD option 1',
+flight_dict_sydney={'Emirates-4:45 pm-10:30 pm':'Emirates MRU-DBX-SYD - 23hrs',
+'Emirates-11:00 pm-7:00 am':'Emirates MRU-DBX-SYD - 25hrs',
 'Air Mauritius-10:15 pm-10:40 pm':'Air Mauritius MRU-PER-SYD option 2',
+'Air Mauritius-10:15 pm-5:50 pm':'Air Mauritius MRU-PER-SYD option 1',
 'Air Mauritius-8:40 pm-9:20 pm':'Air Mauritius MRU-SIN-SYD'}
 
-flight_dict_brisane={'Emirates-4:45 pm-10:40 pm':'Emirates MRU-DBX-BNE',
+flight_dict_brisbane={'Emirates-4:45 pm-10:40 pm':'Emirates MRU-DBX-BNE - 24hrs',
+'Emirates-11:00 pm-6:40 am':'Emirates MRU-DBX-BNE - 26hrs',
 'Air Mauritius-10:15 pm-7:25 pm':'Air Mauritius MRU-PER-BNE option 1',
 'Air Mauritius-10:15 pm-11:50 pm':'Air Mauritius MRU-PER-BNE option 2'}
 
 # Map Flight Path based on Flight ID
 sydney_df['Flight Path']=sydney_df['Flight ID'].map(flight_dict_sydney).fillna('Other-Sydney')
-brisbane_df['Flight Path']=brisbane_df['Flight ID'].map(flight_dict_brisane).fillna('Other-Brisbane')
+brisbane_df['Flight Path']=brisbane_df['Flight ID'].map(flight_dict_brisbane).fillna('Other-Brisbane')
 
 
 # Initialise as master dataframe
@@ -87,7 +89,7 @@ lean_master_df= lean_master_df[lean_master_df['Current Price AUD'] <= 3000]
 
 # Only duration time less than 25 hours
 
-lean_master_df= lean_master_df[lean_master_df['Duration-Net Hours'] < 25]
+lean_master_df= lean_master_df[lean_master_df['Duration-Net Hours'] < 26]
 
 
 def generate_df():
@@ -95,7 +97,7 @@ def generate_df():
 
 def generate_master_df_pivot():
 
-	master_df_pivot=pd.pivot_table(master_df,index='Flight Path',columns='Search Date',values='Current Price AUD',aggfunc='count')
+	master_df_pivot=pd.pivot_table(master_df,index=['Flight Path','Destination'],columns='Search Date',values='Current Price AUD',aggfunc='count')
 	master_df_pivot=master_df_pivot.stack().reset_index()
-	master_df_pivot.columns=['Flight Path','Search Date','No of Flights']
+	master_df_pivot.columns=['Flight Path','Destination','Search Date','No of Flights']
 	return master_df_pivot

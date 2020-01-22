@@ -1,4 +1,4 @@
-# Flights-Search-Project
+# Mauritius-Australia Flights Dashboard
 ## Description
 
 

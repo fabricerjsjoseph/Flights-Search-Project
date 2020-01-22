@@ -235,7 +235,11 @@ def flight_scrapper(mydates,destination):
     for i in range(1,len(mydates)):
         dd,mm,yyyy=mydates[i].split('-')
         new_search(dd,mm,yyyy)
-        compile_data()
+        try:
+            compile_data()
+        except:
+            new_search(dd,mm,yyyy)
+            compile_data()
         df.insert(loc=1,column='Departure Date',value=mydates[i])
         df['Destination']=destination
         print('DataFrame Created for:'+str(mydates[i]))

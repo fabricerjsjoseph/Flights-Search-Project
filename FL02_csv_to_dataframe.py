@@ -101,3 +101,7 @@ def generate_master_df_pivot():
 	master_df_pivot=master_df_pivot.stack().reset_index()
 	master_df_pivot.columns=['Flight Path','Destination','Search Date','No of Flights']
 	return master_df_pivot
+
+
+def generate_master_df():
+    return master_df

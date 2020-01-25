@@ -161,15 +161,25 @@ def FL03A():
 
         # set up bar chart layout
 
-        layout = go.Layout(barmode = "group", title="Current Price Comparison by Departure Date",
-                       xaxis= dict(title= 'Departure Date',ticklen= 5,zeroline= False),
-                       yaxis= dict(title= 'AUD',ticklen= 5,zeroline= False))
+        layout = go.Layout(title="Current Price Comparison by Departure Date",
+                       xaxis= dict(title= 'Departure Date',zeroline= False,type='date'),
+                       yaxis= dict(title= 'AUD',zeroline= False))
 
         # Generate plotly figure object
         figure=go.Figure(data=data,layout=layout)
 
         # Center title
-        figure.update_layout(title_text='<b>Current Price Comparison by Departure Date</b>', title_x=0.5)
+        figure.update_layout(title_text='<b>Current Price Comparison by Departure Date</b>',
+         title_x=0.5,xaxis_tickformat='%b-%d',
+         xaxis=dict(
+         tickmode='array',
+         tickvals=master_df_barchart['Departure Date'].unique(),
+         ticktext=master_df_barchart['Departure Date'].unique()
+         ))
+
+
+        # set no of ticks on xaxis
+        #figure.update_xaxes(tickangle=90,ticklen=len(master_df_barchart['Departure Date']))
 
         return figure
 

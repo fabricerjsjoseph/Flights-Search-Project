@@ -34,9 +34,13 @@ prefs['profile']['default_content_setting_values']={"popups":2}
 #prefs['profile']['content_settings']={'exceptions':{"popups":{"a.com":{"setting":2},
                                                              # "b.com,*":{"setting":1}
                                                              # }}}
-
+# Create ChromeOptions oject
 chromeOptions = ChromeOptions()
+# Adding user preference to ChromeOptions oject
 chromeOptions.add_experimental_option("prefs",prefs)
+# Chrome to ignore certificate errors
+chromeOptions.add_argument('--ignore-certificate-errors')
+chromeOptions.add_argument('--ignore-ssl-errors')
 
 browser = webdriver.Chrome(executable_path=executable_path, options=chromeOptions)#,service_args=service_args)
 

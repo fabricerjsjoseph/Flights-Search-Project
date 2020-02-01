@@ -43,6 +43,8 @@ chromeOptions.add_experimental_option("prefs",prefs)
 chromeOptions.add_argument('--ignore-certificate-errors')
 chromeOptions.add_argument('--ignore-ssl-errors')
 
+browser = webdriver.Chrome(executable_path=executable_path, options=chromeOptions)#,service_args=service_args)
+
 # Setting ticket types xpaths
 one_way_ticket = "//label[@id='flight-type-one-way-label-hp-flight']"
 

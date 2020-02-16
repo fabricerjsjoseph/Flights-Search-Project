@@ -1,9 +1,9 @@
 # Mauritius-Australia Flights Dashboard
 ## Description
 
-The problem:  I was planning my return to Australia and was looking for the best flights that would match my flight preferences. Given that I had a flexible 1-month window and two options as destinations, there was a high volume of data to collect, analyse and track.
+I was planning my return to Australia and was looking for the best flights that would match my flight preferences. Given that I had a flexible 1-month window and two options as destinations, there was a high volume of data to collect, analyse and track.
 
-Solution: I built a web scrapper that performed searches on both destinations daily. The data was extracted, compiled and fed into a dashboard to display key information such as pricing trends and flight availability.
+Therefore, I decided to build a web scrapper that could perform searches on both destinations daily. The data was then extracted, compiled and fed into a dashboard to display key information such as pricing trends and flight availability.
 
 
 ## Demo
